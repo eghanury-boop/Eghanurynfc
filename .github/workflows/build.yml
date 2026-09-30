@@ -1,0 +1,30 @@
+name: AUTO BUILD APK
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - uses: android-actions/setup-android@v3
+      - name: Bikin Project Auto
+        run: |
+          mkdir -p app/src/main/java/com/eghanury/nfc
+          cp MainActivity.kt app/src/main/java/com/eghanury/nfc/ 2>/dev/null || mv MainActivity.kt app/src/main/java/com/eghanury/nfc/
+          echo '<manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-permission android:name="android.permission.NFC"/><uses-feature android:name="android.hardware.nfc" android:required="true"/><application android:label="Egha NFC"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>' > app/src/main/AndroidManifest.xml
+          echo "plugins { id 'com.android.application' }
+          android { compileSdk 34; namespace 'com.eghanury.nfc'; defaultConfig { applicationId \"com.eghanury.nfc\"; minSdk 24; targetSdk 34; versionCode 1; versionName \"1.0\" } }
+          dependencies { implementation 'androidx.appcompat:appcompat:1.6.1' }" > app/build.gradle
+          echo "plugins { id 'com.android.application' version '8.2.0' apply false }" > build.gradle
+          echo "include ':app'" > settings.gradle
+          echo "org.gradle.jvmargs=-Xmx2g" > gradle.properties
+          gradle wrapper --gradle-version 8.5
+      - name: Build APK
+        run:./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: APK-Egha-NFC-AUTO
+          path: app/build/outputs/apk/debug/*.apk
